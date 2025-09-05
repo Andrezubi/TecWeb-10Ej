@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tarea10Ej.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Tarea10Ej.Controllers
 {
@@ -91,5 +93,92 @@ namespace Tarea10Ej.Controllers
             };
             return Ok(productos);   
         }
+
+        [HttpGet("validar-edad/{edad}")]
+        public IActionResult ValidarEdad(int edad)
+        {
+            if (edad < 0)
+            {
+                return BadRequest("La edad no puede ser negativa");
+            }
+
+            if (edad < 18)
+            {
+                return BadRequest( "Debes ser mayor de edad (18+)" );
+            }
+
+            return Ok("Edad válida, acceso permitido");
+        }
+
+
+        [HttpGet("dividir/{a}/{b}")]
+        public IActionResult Dividir(int a, int b)
+        {
+            try
+            {
+                if (b == 0)
+                {
+                    throw new DivideByZeroException("el dividendo no puede ser 0");
+                }
+                int resultado = a / b; 
+                return Ok(new { a, b, resultado });
+            }
+            catch (DivideByZeroException error)
+            {
+                return BadRequest(new { Error = error.Message } );
+            }
+            
+        }
+
+        [HttpPost("validar-usuario")]
+        public IActionResult ValidarUsuario([FromBody] Usuario usuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return Ok(new { mensaje = "Usuario válido", datos = usuario });
+        }
+
+        [HttpGet("caros")]
+        public IActionResult GetProductosCaros()
+        {
+            List<Producto> productos = new List<Producto>(){
+                new Producto( ){Id=1,Name="Chocolate",Price=45},
+                new Producto( ){Id=2,Name="ComidaGato",Price=410},
+                new Producto( ){Id=3,Name="Juguete",Price=33},
+                new Producto( ){Id=4,Name="Peluche",Price=101},
+                new Producto( ){Id=5,Name="Laptop",Price=1000}
+
+            };
+            var caros = productos.Where(p => p.Price > 100).ToList();
+            return Ok(caros);
+        }
+
+        [HttpGet("ordenados")]
+        public IActionResult GetUsuariosOrdenados([FromQuery] string orden = "asc")
+        {
+            List<Persona> personas = new List<Persona>
+        {
+            new Persona { Nombre = "Ana", Edad = 25 },
+            new Persona { Nombre = "Luis", Edad = 30 },
+            new Persona { Nombre = "Marta", Edad = 20 },
+            new Persona { Nombre = "Pedro", Edad = 28 }
+        };
+            IEnumerable<Persona> resultado;
+
+            if (orden.ToLower() == "desc")
+            {
+                resultado = personas.OrderByDescending(u => u.Edad).ToList();
+            }
+            else
+            {
+                resultado = personas.OrderBy(u => u.Edad).ToList();
+            }
+
+            return Ok(resultado);
+        }
+
     }
 }
